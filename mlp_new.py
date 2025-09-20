@@ -1,11 +1,31 @@
 # class for variables in neural network
 class Variable:
-    def __init__(self, value, prev = (), op = ''):
+    def __init__(self, value, prev = (), op = '', label = ''):
         self.value = value    # value of variable
         self.grad = 0.0       # gradient value
         self.prev = set(prev) # parent values
         self.op = op          # operation that produced value from parents
         self.backward = lambda: None
+        self.label = label
+    
+    def parent_chain(self, wrt):
+        chains = []
+        seen_chains = set()  # will store chain keys as tuples of variable labels
+
+        def recurse(curr, path):
+            if curr == wrt:
+                new_chain = path + [wrt]
+                # generate a hashable key using labels
+                key = tuple(node.label for node in new_chain)
+                if key not in seen_chains:
+                    chains.append(new_chain)
+                    seen_chains.add(key)
+                return
+            for parent in curr.prev:
+                recurse(parent, path + [curr])
+
+        recurse(self, [])
+        return chains
     
     # overload addition operation
     def __add__(self, other):
@@ -128,7 +148,7 @@ def sigmoid(x):
         ex = exp(x.value)
         sig_value = ex / (1 + ex)
 
-    out = Variable(sig_value, (x, ), 'sigmoid')
+    out = Variable(sig_value, (x, ), 'sigmoid', label = f'sigmoid({x.label})')
 
     def backward():
         out_grad = out.grad
@@ -142,23 +162,26 @@ def sigmoid(x):
 
 # class for MLP neuron
 class Neuron:
-    def __init__(self, n_inputs):
-        self.W = [Variable(prng.get_random_float_range(-1,1)) for _ in range(n_inputs)]
-        self.b = Variable(0.0) 
+    def __init__(self, n_inputs, layer_num, neuron_num):
+        self.layer_num = layer_num
+        self.neuron_num = neuron_num
+        self.W = [Variable(prng.get_random_float_range(-1,1), label = f"W_{neuron_num}_{i}_({layer_num})") for i in range(n_inputs)]
+        self.b = Variable(0.0, label = f"b_{neuron_num}_({layer_num})") 
 
     # compute activation for neuron
     def __call__(self, x):
         weighted_sum = self.b
         for wi, xi in zip(self.W, x):
             weighted_sum = weighted_sum + wi * xi
+        weighted_sum.label = f'a_{self.neuron_num}_({self.layer_num})'
         return sigmoid(weighted_sum)
 
 # class for MLP layer  
 class Layer:
-    def __init__(self, n_inputs, n_outputs):
+    def __init__(self, n_inputs, n_outputs, layer_num):
         self.neurons = []
-        for _ in range(n_outputs):
-            neuron = Neuron(n_inputs)
+        for i in range(n_outputs):
+            neuron = Neuron(n_inputs, layer_num, i)
             self.neurons.append(neuron)
     
     # compute activations for layer
@@ -174,7 +197,7 @@ class MLP:
         sizes = [n_inputs] + hidden_sizes + [n_outputs]
         self.layers = []
         for i in range(len(sizes) - 1):
-            layer = Layer(sizes[i], sizes[i + 1])
+            layer = Layer(sizes[i], sizes[i + 1], i)
             self.layers.append(layer)
     
     def __call__(self, x):
@@ -224,35 +247,58 @@ def two_bit_adder_dataset():
 # function to get prediction on new input
 def predict(net, x_raw):
     # convert value to Variable object
-    x_vars = [Variable(v) for v in x_raw]
+    x_vars = [Variable(v, label = 'x_i') for v, i in enumerate(x_raw)]
 
     y_pred_vars = net(x_vars)
 
     return [v.value for v in y_pred_vars]
 
-def main():
-    for i in range(500):
-        print(prng.get_random_float_range(-1,1))
+# function to run xor predictions
+def predict_xor(net):
+    pred = predict(net, [0, 0])
+    print(pred)
+    pred = predict(net, [0, 1])
+    print(pred)
+    pred = predict(net, [1, 0])
+    print(pred)
+    pred = predict(net, [1, 1])
+    print(pred)
 
+# function to run adder predictions
+def predict_adder(net):
+    pred = predict(net, [0, 0, 0, 0, 0])
+    print(pred)
+    pred = predict(net, [0, 1, 1, 0, 0])
+    print(pred)
+    pred = predict(net, [1, 0, 0, 0, 1])
+    print(pred)
+    pred = predict(net, [1, 1, 0, 0, 1])
+    print(pred)
+    pred = predict(net, [1, 1, 1, 1, 1])
+    print(pred)
+
+def main():
     # create MLP
     net = MLP(n_inputs = 2, hidden_sizes = [3], n_outputs = 1)
 
     dataset = xor_dataset()
     # dataset = two_bit_adder_dataset()
-  
+    
     # train MLP
-    for epoch in range(100000):
+    last_loss = Variable(0.0)
+    for epoch in range(5):
         total_loss = 0.0
 
         for x_raw, y_raw in dataset:
             # convert dataset values into instances of Variable class
-            x_vars = [Variable(v) for v in x_raw]
-            y_vars = [Variable(v) for v in y_raw]
+            x_vars = [Variable(v, label = 'x_i') for v, i in enumerate(x_raw)]
+            y_vars = [Variable(v, label = 'y_i') for v, i in enumerate(y_raw)]
 
             # foward pass
             y_pred = net(x_vars)
             loss = loss_function(y_pred, y_vars)
-
+            last_loss = loss
+            
             # reset gradients for weights and biases
             for layer in net.layers:
                 for neuron in layer.neurons:
@@ -277,40 +323,26 @@ def main():
         # print training progress to terminal
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
     
-    # make predictions
-    # pred = predict(net, [0, 0, 0, 0, 0])
-    # print(pred)
-    # pred = predict(net, [0, 1, 1, 0, 0])
-    # print(pred)
-    # pred = predict(net, [1, 0, 0, 0, 1])
-    # print(pred)
-    # pred = predict(net, [1, 1, 0, 0, 1])
-    # print(pred)
-    # pred = predict(net, [1, 1, 1, 1, 1])
-    # print(pred)
+    # for every weight, print the derivative chain for partial of loss with respect to weight
+    chain_strings = []
+    for layer in net.layers:
+        for neuron in layer.neurons:
+            # Derivative chains for weights
+            for W in neuron.W:
+                print(f"dLoss/d{W.label} =")
+                chains = last_loss.parent_chain(W)
+                
+                for chain in chains:
+                    seen = set()
+                    labels = []
+                    for p in chain:
+                        if hasattr(p, "label") and p.label:
+                            labels.append(p.label)
+                            seen.add(p.label)
+                    string = "Loss -> " + " -> ".join(labels)
+                    print(string)
+                    chain_strings.append(string)
 
-    pred = predict(net, [0, 0])
-    print(pred)
-    pred = predict(net, [0, 1])
-    print(pred)
-    pred = predict(net, [1, 0])
-    print(pred)
-    pred = predict(net, [1, 1])
-    print(pred)
-
+    
 if __name__ == "__main__":
     main()
-
-
-
-# x = Variable(-2.0)
-# y = Variable(5.0)
-# z = Variable(-4.0)
-
-# q = x + y
-# f = q * z
-
-# f.backprop()
-
-# print(f"f = {f.value}, df/dx = {x.grad}, df/dy = {y.grad}, df/dq = {q.grad}, df/df = {f.grad}")
-
