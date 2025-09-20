@@ -198,9 +198,9 @@ def main():
 
     dataset = xor_dataset()
     dataset = two_bit_adder_dataset()
-
+  
     # train MLP
-    for epoch in range(5000):
+    for epoch in range(15000):
         total_loss = 0.0
 
         for x_raw, y_raw in dataset:
@@ -243,8 +243,10 @@ def main():
     print(pred)
     pred = predict(net, [1, 0, 0, 0, 1])
     print(pred)
-
-
+    pred = predict(net, [1, 1, 0, 0, 1])
+    print(pred)
+    pred = predict(net, [1, 1, 1, 1, 1])
+    print(pred)
 
 if __name__ == "__main__":
     main()
