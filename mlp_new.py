@@ -159,6 +159,30 @@ def xor_dataset():
     ]
     return xor
 
+# two bit adder dataset
+def two_bit_adder_dataset():
+    dataset = []
+
+    for a0 in [0.0, 1.0]:
+        for b0 in [0.0, 1.0]:
+            for c0 in [0.0, 1.0]:
+                for a1 in [0.0, 1.0]:
+                    for b1 in [0.0, 1.0]:
+                        s0 = (a0 + b0 + c0) % 2
+                        carry_0 = (a0 + b0 + c0) // 2
+
+                        s1 = (a1 + b1 + carry_0) % 2
+                        carry_1 = (a1 + b1 + carry_0) // 2
+
+                        c2 = carry_1
+
+                        inputs = [a0, b0, c0, a1, b1]
+                        outputs = [s0, s1, c2]
+
+                        dataset.append((inputs, outputs))
+
+    return dataset
+
 # function to get prediction on new input
 def predict(net, x_raw):
     # convert value to Variable object
@@ -170,12 +194,13 @@ def predict(net, x_raw):
 
 def main():
     # create MLP
-    net = MLP(n_inputs = 2, hidden_sizes = [3], n_outputs = 1)
+    net = MLP(n_inputs = 5, hidden_sizes = [6, 6], n_outputs = 3)
 
     dataset = xor_dataset()
+    dataset = two_bit_adder_dataset()
 
     # train MLP
-    for epoch in range(10000):
+    for epoch in range(5000):
         total_loss = 0.0
 
         for x_raw, y_raw in dataset:
@@ -212,17 +237,17 @@ def main():
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
     
     # make predictions
-    pred = predict(net, [0, 0])
+    pred = predict(net, [0, 0, 0, 0, 0])
+    print(pred)
+    pred = predict(net, [0, 1, 1, 0, 0])
+    print(pred)
+    pred = predict(net, [1, 0, 0, 0, 1])
     print(pred)
 
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
 
 
 
