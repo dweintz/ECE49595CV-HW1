@@ -1,6 +1,3 @@
-import math     # import for exp in sigmoid
-import random   # import to initilize network weights to random values
-
 # class for variables in neural network
 class Variable:
     def __init__(self, value, prev = (), op = ''):
@@ -87,9 +84,50 @@ class Variable:
         for node in reversed(topo):
             node.backward()
 
+# define an exponential function to avoid use of math library
+def exp(x, terms = 50):
+    result = 1.0
+    term = 1.0
+
+    # use taylor expansion
+    for n in range(1, terms):
+        term *= x / n
+        result += term
+    return result
+
+# define a function for generating random numbers without random library
+class PRNG:
+    # use Linear Congruential Generatator
+    def __init__(self, seed):
+        self.current_seed = seed
+        self.multiplier = 16807
+        self.increment = 0
+        self.modulus = 2147483647
+    
+    # get next random number using LCG formula
+    def next_random(self):
+        self.current_seed = (self.multiplier * self.current_seed + self.increment) % self.modulus
+        return self.current_seed
+    
+    # get a random float between 0 and 1
+    def get_random_float(self):
+        return self.next_random() / self.modulus
+    
+    # get a random float between number range
+    def get_random_float_range(self, min_val, max_val):
+        return min_val + (max_val - min_val) * self.get_random_float()
+
+# initialize pseudo-random number generator
+prng = PRNG(seed = 23422)
+
 # sigmoid function
 def sigmoid(x):
-    sig_value = 1 / (1 + math.exp(-x.value))
+    if x.value > 0:
+        sig_value = 1 / (1 + exp(-x.value))
+    else:
+        ex = exp(x.value)
+        sig_value = ex / (1 + ex)
+
     out = Variable(sig_value, (x, ), 'sigmoid')
 
     def backward():
@@ -105,7 +143,7 @@ def sigmoid(x):
 # class for MLP neuron
 class Neuron:
     def __init__(self, n_inputs):
-        self.W = [Variable(random.uniform(-1, 1)) for _ in range(n_inputs)]
+        self.W = [Variable(prng.get_random_float_range(-1,1)) for _ in range(n_inputs)]
         self.b = Variable(0.0) 
 
     # compute activation for neuron
@@ -193,14 +231,17 @@ def predict(net, x_raw):
     return [v.value for v in y_pred_vars]
 
 def main():
+    for i in range(500):
+        print(prng.get_random_float_range(-1,1))
+
     # create MLP
-    net = MLP(n_inputs = 5, hidden_sizes = [6, 6], n_outputs = 3)
+    net = MLP(n_inputs = 2, hidden_sizes = [3], n_outputs = 1)
 
     dataset = xor_dataset()
-    dataset = two_bit_adder_dataset()
+    # dataset = two_bit_adder_dataset()
   
     # train MLP
-    for epoch in range(15000):
+    for epoch in range(100000):
         total_loss = 0.0
 
         for x_raw, y_raw in dataset:
@@ -223,7 +264,7 @@ def main():
             loss.backprop()
 
             # update weights and biases
-            eta = 0.1
+            eta = 0.05
             for layer in net.layers:
                 for neuron in layer.neurons:
                     for W in neuron.W:
@@ -237,15 +278,24 @@ def main():
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
     
     # make predictions
-    pred = predict(net, [0, 0, 0, 0, 0])
+    # pred = predict(net, [0, 0, 0, 0, 0])
+    # print(pred)
+    # pred = predict(net, [0, 1, 1, 0, 0])
+    # print(pred)
+    # pred = predict(net, [1, 0, 0, 0, 1])
+    # print(pred)
+    # pred = predict(net, [1, 1, 0, 0, 1])
+    # print(pred)
+    # pred = predict(net, [1, 1, 1, 1, 1])
+    # print(pred)
+
+    pred = predict(net, [0, 0])
     print(pred)
-    pred = predict(net, [0, 1, 1, 0, 0])
+    pred = predict(net, [0, 1])
     print(pred)
-    pred = predict(net, [1, 0, 0, 0, 1])
+    pred = predict(net, [1, 0])
     print(pred)
-    pred = predict(net, [1, 1, 0, 0, 1])
-    print(pred)
-    pred = predict(net, [1, 1, 1, 1, 1])
+    pred = predict(net, [1, 1])
     print(pred)
 
 if __name__ == "__main__":
