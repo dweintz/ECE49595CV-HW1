@@ -165,7 +165,7 @@ class Neuron:
     def __init__(self, n_inputs, layer_num, neuron_num):
         self.layer_num = layer_num
         self.neuron_num = neuron_num
-        self.W = [Variable(prng.get_random_float_range(-1,1), label = f"W_{neuron_num}_{i}_({layer_num})") for i in range(n_inputs)]
+        self.W = [Variable(prng.get_random_float_range(-1,1), label = f"W_{{{neuron_num}, {i}}}^{{({layer_num})}}") for i in range(n_inputs)]
         self.b = Variable(0.0, label = f"b_{neuron_num}_({layer_num})") 
 
     # compute activation for neuron
@@ -173,7 +173,7 @@ class Neuron:
         weighted_sum = self.b
         for wi, xi in zip(self.W, x):
             weighted_sum = weighted_sum + wi * xi
-        weighted_sum.label = f'a_{self.neuron_num}_({self.layer_num})'
+        weighted_sum.label = f"a_{self.neuron_num}^{self.layer_num}"
         return sigmoid(weighted_sum)
 
 # class for MLP layer  
@@ -277,16 +277,79 @@ def predict_adder(net):
     pred = predict(net, [1, 1, 1, 1, 1])
     print(pred)
 
+def write_to_file(chain_strings, numerical_strings):
+    all_chains = []
+    for string in chain_strings:
+        chain_list = [s.strip() for s in string.split("->")]
+        all_chains.append(chain_list)
+
+    all_numericals = []
+    for string in numerical_strings:
+        numerical_list = [s.strip() for s in string.split("->")]
+        all_numericals.append(numerical_list)
+
+    return all_chains, all_numericals
+
+def clean_label(label):
+    """Replace sigmoid with LaTeX sigma and format other names nicely."""
+    if "sigmoid" in label:
+        inner = label[label.find("(")+1:label.find(")")]
+        return rf"\sigma({inner})"
+    return label
+
+def initialize_latex(filename="derivatives.tex"):
+    """Create a new LaTeX file and write the preamble."""
+    with open(filename, "w") as f:
+        f.write(r"\documentclass{article}" + "\n")
+        f.write(r"\usepackage{amsmath}" + "\n")
+        f.write(r"\begin{document}" + "\n\n")
+    print(f"{filename} initialized.")
+
+def write_chain_to_latex(chain_list, numericals, filename="derivatives.tex"):
+    """Write a single derivative chain to the LaTeX file."""
+    with open(filename, "a") as f:
+        # Last element is the weight we are differentiating wrt
+        final_var = clean_label(chain_list[-1])
+        # Start with dLoss/dW = ...
+        latex_chain = f"\\frac{{\\partial \\text{{Loss}}}}{{\\partial {final_var}}} = "
+        latex_numerical_chain = f"\\frac{{\\partial \\text{{Loss}}}}{{\\partial {final_var}}} = "
+
+        # Build product of partial derivatives
+        products = []
+        
+        for i in range(len(chain_list)-1):
+            numerator = clean_label(chain_list[i])
+            denominator = clean_label(chain_list[i+1])
+            products.append(f"\\frac{{\\partial {numerator}}}{{\\partial {denominator}}}")
+
+        numerical_products = []
+        for i in range(len(numericals)-1):
+            val = clean_label(numericals[i])
+            numerical_products.append(f"{val}")
+        
+        latex_chain += " \\cdot ".join(products)
+        latex_numerical_chain += " \\cdot ".join(numerical_products)
+
+        f.write(f"${latex_chain}$\\\\[2mm]\n")
+        # f.write(f"${latex_numerical_chain}$\\\\[2mm]\n")
+       
+
+def finalize_latex(filename="derivatives.tex"):
+    """Write the end of the LaTeX document."""
+    with open(filename, "a") as f:
+        f.write("\n\\end{document}")
+    print(f"{filename} finalized.")
+
 def main():
     # create MLP
-    net = MLP(n_inputs = 2, hidden_sizes = [3], n_outputs = 1)
+    net = MLP(n_inputs = 2, hidden_sizes = [3,3], n_outputs = 1)
 
     dataset = xor_dataset()
     # dataset = two_bit_adder_dataset()
     
     # train MLP
     last_loss = Variable(0.0)
-    for epoch in range(5):
+    for epoch in range(50):
         total_loss = 0.0
 
         for x_raw, y_raw in dataset:
@@ -323,11 +386,11 @@ def main():
         # print training progress to terminal
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
     
-    # for every weight, print the derivative chain for partial of loss with respect to weight
     chain_strings = []
+    numerical_strings = []
+
     for layer in net.layers:
         for neuron in layer.neurons:
-            # Derivative chains for weights
             for W in neuron.W:
                 print(f"dLoss/d{W.label} =")
                 chains = last_loss.parent_chain(W)
@@ -335,14 +398,29 @@ def main():
                 for chain in chains:
                     seen = set()
                     labels = []
+                    numericals = []
+                    
                     for p in chain:
-                        if hasattr(p, "label") and p.label:
-                            labels.append(p.label)
+                        if hasattr(p, "label") and p.label and p.label not in seen:
+                            labels.append(clean_label(p.label))
+                            numericals.append(p.grad)
                             seen.add(p.label)
+                    
                     string = "Loss -> " + " -> ".join(labels)
+                    string2 = " -> ".join([f"{num:.4f}" for num in numericals])
+                    
                     print(string)
+                    print(string2)
+                    
                     chain_strings.append(string)
+                    numerical_strings.append(string2)
 
+    chains, numericals = write_to_file(chain_strings, numerical_strings)
+
+    initialize_latex()
+    for chain, numerical in zip(chains, numericals):
+        write_chain_to_latex(chain, numerical)
+    finalize_latex()
     
 if __name__ == "__main__":
     main()
