@@ -247,7 +247,7 @@ def two_bit_adder_dataset():
 # function to get prediction on new input
 def predict(net, x_raw):
     # convert value to Variable object
-    x_vars = [Variable(v, label = 'x_i') for v, i in enumerate(x_raw)]
+    x_vars = [Variable(v, label = 'x_i') for v in x_raw]
 
     y_pred_vars = net(x_vars)
 
@@ -342,20 +342,20 @@ def finalize_latex(filename="derivatives.tex"):
 
 def main():
     # create MLP
-    net = MLP(n_inputs = 2, hidden_sizes = [3,3], n_outputs = 1)
+    net = MLP(n_inputs = 2, hidden_sizes = [3], n_outputs = 1)
 
     dataset = xor_dataset()
     # dataset = two_bit_adder_dataset()
     
     # train MLP
     last_loss = Variable(0.0)
-    for epoch in range(50):
+    for epoch in range(10000):
         total_loss = 0.0
 
         for x_raw, y_raw in dataset:
             # convert dataset values into instances of Variable class
-            x_vars = [Variable(v, label = 'x_i') for v, i in enumerate(x_raw)]
-            y_vars = [Variable(v, label = 'y_i') for v, i in enumerate(y_raw)]
+            x_vars = [Variable(v, label = 'x_i') for v in x_raw]
+            y_vars = [Variable(v, label = 'y_i') for v in y_raw]
 
             # foward pass
             y_pred = net(x_vars)
@@ -385,6 +385,10 @@ def main():
         
         # print training progress to terminal
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
+
+    predict_xor(net)
+
+
     
     chain_strings = []
     numerical_strings = []
