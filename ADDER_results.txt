@@ -8,7 +8,7 @@ Parameters:
    Num_epochs = 1400
    Train size = 100.0%
 Results:
-   Loss = 2.9083725265168354
+   Final Loss = 2.908372528282905
 
 Predictions for all data (rounded to nearest integer):
 
@@ -85,4 +85,4 @@ Input = [1, 1, 1, 1, 1], Output = [1, 1, 1]
 
 Precitions for test set used:
 
-All data used for training and testing
+All data used for training and testing.

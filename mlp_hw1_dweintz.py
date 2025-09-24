@@ -232,6 +232,7 @@ def predict(net, x_raw):
     y_pred_vars = net(x_vars)
     return [v.value for v in y_pred_vars]
 
+# function to shuffle a list without using random library
 def shuffle_list(list):
     # shuffle the dataset
     for _ in range(len(list)):
@@ -246,6 +247,7 @@ def shuffle_list(list):
     
     return list
 
+# function to split data into training and testing sets
 def test_train_split(dataset, percent_train):
     num_train = int(percent_train * len(dataset))
 
@@ -258,15 +260,7 @@ def test_train_split(dataset, percent_train):
 
     return training_dataset, testing_dataset
 
-def evaluate_test_set(net, test_set):
-    total_loss = 0.0
-    for x_raw, y_raw in test_set:
-        x_vars = [Variable(v) for v in x_raw]
-        y_vars = [Variable(v) for v in y_raw]
-        y_pred = net(x_vars)
-        total_loss += loss_function(y_pred, y_vars).value
-    return total_loss / len(test_set)
-
+# function to train the MLP
 def train_mlp(net, training_set, learning_rate, num_epochs):
     # train MLP
     total_loss = 'inf'
@@ -306,7 +300,7 @@ def train_mlp(net, training_set, learning_rate, num_epochs):
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
     return net, total_loss
 
-# function 
+# function to build, train, and test the MLP with various hyperparameters  
 def run_MLP(dataset, 
             dataset_name, 
             percent_train,
@@ -316,7 +310,7 @@ def run_MLP(dataset,
             learning_rate, 
             num_epochs):
     
-    with open(f"{dataset_name}_example.txt", "w") as f:
+    with open(f"{dataset_name}_results.txt", "w") as f:
         # construct MLP
         net = MLP(n_inputs = n_inputs,
                   hidden_sizes = hidden_sizes, 
@@ -339,7 +333,7 @@ def run_MLP(dataset,
         f.write(f'   Num_epochs = {num_epochs}\n')
         f.write(f'   Train size = {percent_train * 100}%\n')
         f.write('Results:\n')
-        f.write(f'   Loss = {total_loss}\n\n')
+        f.write(f'   Final Loss = {total_loss}\n\n')
 
         f.write('Predictions for all data (rounded to nearest integer):\n\n')
         total = 0.0
@@ -366,7 +360,7 @@ def run_MLP(dataset,
 
         f.write('\nPrecitions for test set used:\n\n')
         if not testing_set:
-                f.write('All data used for training and testing\n')
+                f.write('All data used for training and testing.\n')
         else:
             for input in testing_set:
                 pred_output = predict(net, input[0])
@@ -381,12 +375,25 @@ def run_MLP(dataset,
                 f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, '
                         f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
 
-    return total_loss
-
 def main():
     '''
-    This function calls the function run_MLP
+    This function calls the function "run_MLP" with parameters to the network.
+    To see the results of different splits, hyperparameters, learning rates, and
+    epochs, adjust the parameters in the call to each function. I experimented with
+    the parameters and found that these values provide reasonably accurate results.
+    Upon running the script, output will be written into easily readable txt files.
+
+    Parameters:
+    -- "dataset": The dataset (list of tuples containing input/output data).
+    -- "dataset_name": The name of the dataset (used to name output text file).
+    -- "percent_train": Fraction of the dataset to be used for training (rest used for testing).
+    -- "n_inputs": Number of inputs to the network.
+    -- "hidden_sizes": list of integers with each integer corresponding to size of a hidden layer.
+    -- "n_outputs": Number of outputs of the network.
+    -- "learning_rate": The learning rate for gradient descent.
+    -- "num_epochs": Number of gradient descent iterations.
     '''
+
     # run example on XOR dataset - write results to text file
     run_MLP(dataset = xor_dataset(), 
             dataset_name = 'XOR',
