@@ -249,7 +249,8 @@ def shuffle_list(list):
 def test_train_split(dataset, percent_train):
     num_train = int(percent_train * len(dataset))
 
-    dataset = shuffle_list(dataset)
+    if percent_train != 1.0:
+        dataset = shuffle_list(dataset)
   
     # split into training and testing sets
     training_dataset = dataset[0:num_train]
@@ -305,31 +306,91 @@ def train_mlp(net, training_set, learning_rate, num_epochs):
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
     return net, total_loss
 
-def run_MLP(dataset, dataset_name, n_inputs, hidden_sizes, n_outputs, learning_rate, num_epochs):
+# function 
+def run_MLP(dataset, 
+            dataset_name, 
+            percent_train,
+            n_inputs, 
+            hidden_sizes, 
+            n_outputs, 
+            learning_rate, 
+            num_epochs):
+    
     with open(f"{dataset_name}_example.txt", "w") as f:
-        net = MLP(n_inputs = n_inputs, hidden_sizes = hidden_sizes, n_outputs = n_outputs)
-        net, total_loss = train_mlp(net, training_set = dataset, learning_rate = learning_rate, num_epochs = num_epochs)
+        # construct MLP
+        net = MLP(n_inputs = n_inputs,
+                  hidden_sizes = hidden_sizes, 
+                  n_outputs = n_outputs)
         
-        f.write(f'MLP OUTPUT FOR {dataset_name}:\n\n')
+        # train the network
+        training_set, testing_set = test_train_split(dataset, percent_train)
+        net, total_loss = train_mlp(net, 
+                                    training_set = training_set, 
+                                    learning_rate = learning_rate, 
+                                    num_epochs = num_epochs)
+        
+        # write nicely formatted output to txt file
+        f.write(f'========== MLP OUTPUT FOR {dataset_name} ==========\n\n')
         f.write('Parameters:\n')
         f.write(f'   Number of inputs = {n_inputs}\n')
         f.write(f'   Hidden Layers = {hidden_sizes}\n')
         f.write(f'   Number of outputs = {n_outputs}\n')
         f.write(f'   Learning rate = {learning_rate}\n')
-        f.write(f'   num_epochs = {num_epochs}\n')
+        f.write(f'   Num_epochs = {num_epochs}\n')
+        f.write(f'   Train size = {percent_train * 100}%\n')
         f.write('Results:\n')
         f.write(f'   Loss = {total_loss}\n\n')
 
-        f.write('Predictions (rounded to nearest integer):\n\n')
+        f.write('Predictions for all data (rounded to nearest integer):\n\n')
+        total = 0.0
+        correct = 0.0
         for input in dataset:
-            output = predict(net, input[0])
-            output = [round(i, 0) for i in output]
-            f.write(f'Input = {input[0]}, Output = {output}\n')
+            pred_output = predict(net, input[0])
+            pred_output = [round(i, 0) for i in pred_output]
+            exp_output = input[1]
+            exp_output = [round(i, 0) for i in exp_output]
+
+            if pred_output == exp_output:
+                correct += 1
+            total += 1
+            
+            f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, '
+                    f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
+
+        accuracy = round(correct / total, 2)
+        f.write(f'\nAccuracy = {accuracy * 100}%\n')
+
+        f.write('\n\nTraining set used:\n\n')
+        for input in training_set:
+            f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in input[1]]}\n')
+
+        f.write('\nPrecitions for test set used:\n\n')
+        if not testing_set:
+                f.write('All data used for training and testing\n')
+        else:
+            for input in testing_set:
+                pred_output = predict(net, input[0])
+                pred_output = [round(i, 0) for i in pred_output]
+                exp_output = input[1]
+                exp_output = [round(i, 0) for i in exp_output]
+
+                if pred_output == exp_output:
+                    correct += 1
+                total += 1
+                
+                f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, '
+                        f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
+
+    return total_loss
 
 def main():
+    '''
+    This function calls the function run_MLP
+    '''
     # run example on XOR dataset - write results to text file
     run_MLP(dataset = xor_dataset(), 
             dataset_name = 'XOR',
+            percent_train = 1.0,
             n_inputs = 2,
             hidden_sizes = [3],
             n_outputs = 1,
@@ -339,38 +400,13 @@ def main():
     # run example on adder dataset - write results to text file
     run_MLP(dataset = two_bit_adder_dataset(), 
             dataset_name = 'ADDER',
+            percent_train = 1.0,
             n_inputs = 5,
-            hidden_sizes = [8, 6],
+            hidden_sizes = [10, 5],
             n_outputs = 3,
-            learning_rate = 0.04,
-            num_epochs = 2000)
+            learning_rate = 0.05,
+            num_epochs = 1400)
     
-    # run on different hyperparameters - write to file
-    datasets = {"XOR": xor_dataset(), "Two-bit Adder": two_bit_adder_dataset()}
-    splits = [0.75]
-    hidden_options = [[3], [3, 3]]
-    learning_rates = [0.05, 0.1]
-    epochs = [100, 200, 1000]
-
-    with open("results.txt", "w") as f:
-        f.write('This file contains results from various modifications to hyperparameters.\n')
-        for name, dataset in datasets.items():
-            f.write(f"\n-Dataset: {name}:\n")
-            for split in splits:
-                training_dataset, testing_dataset = test_train_split(dataset, split)
-                for hidden in hidden_options:
-                    for lr in learning_rates:
-                        for num_epochs in epochs:
-                            # build network
-                            net = MLP(n_inputs = len(dataset[0][0]), hidden_sizes = hidden, n_outputs = len(dataset[0][1]))
-                            
-                            # train network
-                            net, train_loss = train_mlp(net, training_dataset, learning_rate = lr, num_epochs = num_epochs)
-                            
-                            # test network
-                            test_loss = evaluate_test_set(net, testing_dataset)
-                            f.write(f"Split = {split:<5.2f} | Hidden = {str(hidden):<8} | LearningRate = {lr:<4} | "
-                                f"Epochs = {num_epochs:<4} | TrainLoss = {train_loss:<8.4f} | TestLoss = {test_loss:<8.4f}\n")
     print("\nDone. Check output files for results.\n")
 
 if __name__ == "__main__":
