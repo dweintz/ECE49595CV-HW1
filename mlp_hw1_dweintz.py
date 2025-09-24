@@ -412,7 +412,7 @@ def main():
             hidden_sizes = [10, 5],
             n_outputs = 3,
             learning_rate = 0.05,
-            num_epochs = 1400)
+            num_epochs = 1580)
     
     print("\nDone. Check output files for results.\n")
 

@@ -5,14 +5,14 @@ Parameters:
    Hidden Layers = [10, 5]
    Number of outputs = 3
    Learning rate = 0.05
-   Num_epochs = 1400
+   Num_epochs = 1580
    Train size = 100.0%
 Results:
-   Final Loss = 2.908372528282905
+   Final Loss = 1.741048987734726
 
 Predictions for all data (rounded to nearest integer):
 
-Input = [0, 0, 0, 0, 0], Output = [1, 0, 0], Incorrect
+Input = [0, 0, 0, 0, 0], Output = [0, 0, 0], Correct
 Input = [0, 0, 0, 0, 1], Output = [0, 1, 0], Correct
 Input = [0, 0, 0, 1, 0], Output = [0, 1, 0], Correct
 Input = [0, 0, 0, 1, 1], Output = [0, 0, 1], Correct
@@ -45,7 +45,7 @@ Input = [1, 1, 1, 0, 1], Output = [1, 0, 1], Correct
 Input = [1, 1, 1, 1, 0], Output = [1, 0, 1], Correct
 Input = [1, 1, 1, 1, 1], Output = [0, 1, 1], Incorrect
 
-Accuracy = 94.0%
+Accuracy = 97.0%
 
 
 Training set used:
