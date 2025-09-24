@@ -320,30 +320,30 @@ def run_MLP(dataset, dataset_name, n_inputs, hidden_sizes, n_outputs, learning_r
         f.write('Results:\n')
         f.write(f'   Loss = {total_loss}\n\n')
 
-        f.write('Predictions:\n\n')
+        f.write('Predictions (rounded to nearest integer):\n\n')
         for input in dataset:
             output = predict(net, input[0])
-            output = [round(i, 1) for i in output]
+            output = [round(i, 0) for i in output]
             f.write(f'Input = {input[0]}, Output = {output}\n')
 
 def main():
-    # # run example on XOR dataset - write results to text file
-    # run_MLP(dataset = xor_dataset(), 
-    #         dataset_name = 'XOR',
-    #         n_inputs = 2,
-    #         hidden_sizes = [3],
-    #         n_outputs = 1,
-    #         learning_rate = 0.05,
-    #         num_epochs = 20000)
+    # run example on XOR dataset - write results to text file
+    run_MLP(dataset = xor_dataset(), 
+            dataset_name = 'XOR',
+            n_inputs = 2,
+            hidden_sizes = [3],
+            n_outputs = 1,
+            learning_rate = 0.05,
+            num_epochs = 20000)
     
     # run example on adder dataset - write results to text file
     run_MLP(dataset = two_bit_adder_dataset(), 
             dataset_name = 'ADDER',
             n_inputs = 5,
-            hidden_sizes = [3],
+            hidden_sizes = [8, 6],
             n_outputs = 3,
-            learning_rate = 0.05,
-            num_epochs = 20000)
+            learning_rate = 0.04,
+            num_epochs = 2000)
     
     # run on different hyperparameters - write to file
     datasets = {"XOR": xor_dataset(), "Two-bit Adder": two_bit_adder_dataset()}
