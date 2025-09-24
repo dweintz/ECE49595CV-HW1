@@ -1,32 +1,12 @@
 # class for variables in neural network
 class Variable:
-    def __init__(self, value, prev = (), op = '', label = ''):
-        self.value = value    # value of variable
-        self.grad = 0.0       # gradient value
-        self.prev = set(prev) # parent values
-        self.op = op          # operation that produced value from parents
-        self.backward = lambda: None
-        self.label = label
-    
-    def parent_chain(self, wrt):
-        chains = []
-        seen_chains = set()  # will store chain keys as tuples of variable labels
+    def __init__(self, value, prev = (), op = ''):
+        self.value = value              # value of variable
+        self.grad = 0.0                 # gradient value
+        self.prev = set(prev)           # parent values
+        self.op = op                    # operation that produced value from parents
+        self.backward = lambda: None    # function for computing gradient
 
-        def recurse(curr, path):
-            if curr == wrt:
-                new_chain = path + [wrt]
-                # generate a hashable key using labels
-                key = tuple(node.label for node in new_chain)
-                if key not in seen_chains:
-                    chains.append(new_chain)
-                    seen_chains.add(key)
-                return
-            for parent in curr.prev:
-                recurse(parent, path + [curr])
-
-        recurse(self, [])
-        return chains
-    
     # overload addition operation
     def __add__(self, other):
         # ensure other is an instance of Variable class
@@ -99,7 +79,6 @@ class Variable:
                     build(child)
                 topo.append(variable)
         build(self)
-
         self.grad = 1.0
         for node in reversed(topo):
             node.backward()
@@ -136,6 +115,9 @@ class PRNG:
     # get a random float between number range
     def get_random_float_range(self, min_val, max_val):
         return min_val + (max_val - min_val) * self.get_random_float()
+    
+    def get_random_int_range(self, min_val, max_val):
+        return int(self.get_random_float_range(min_val, max_val))
 
 # initialize pseudo-random number generator
 prng = PRNG(seed = 23422)
@@ -148,7 +130,7 @@ def sigmoid(x):
         ex = exp(x.value)
         sig_value = ex / (1 + ex)
 
-    out = Variable(sig_value, (x, ), 'sigmoid', label = f'sigmoid({x.label})')
+    out = Variable(sig_value, (x, ), 'sigmoid')
 
     def backward():
         out_grad = out.grad
@@ -165,15 +147,14 @@ class Neuron:
     def __init__(self, n_inputs, layer_num, neuron_num):
         self.layer_num = layer_num
         self.neuron_num = neuron_num
-        self.W = [Variable(prng.get_random_float_range(-1,1), label = f"W_{{{neuron_num}, {i}}}^{{({layer_num})}}") for i in range(n_inputs)]
-        self.b = Variable(0.0, label = f"b_{neuron_num}_({layer_num})") 
+        self.W = [Variable(prng.get_random_float_range(-1,1)) for i in range(n_inputs)]
+        self.b = Variable(0.0) 
 
     # compute activation for neuron
     def __call__(self, x):
         weighted_sum = self.b
         for wi, xi in zip(self.W, x):
             weighted_sum = weighted_sum + wi * xi
-        weighted_sum.label = f"a_{self.neuron_num}^{self.layer_num}"
         return sigmoid(weighted_sum)
 
 # class for MLP layer  
@@ -247,120 +228,58 @@ def two_bit_adder_dataset():
 # function to get prediction on new input
 def predict(net, x_raw):
     # convert value to Variable object
-    x_vars = [Variable(v, label = 'x_i') for v in x_raw]
-
+    x_vars = [Variable(v) for v in x_raw]
     y_pred_vars = net(x_vars)
-
     return [v.value for v in y_pred_vars]
 
-# function to run xor predictions
-def predict_xor(net):
-    pred = predict(net, [0, 0])
-    print(pred)
-    pred = predict(net, [0, 1])
-    print(pred)
-    pred = predict(net, [1, 0])
-    print(pred)
-    pred = predict(net, [1, 1])
-    print(pred)
+def shuffle_list(list):
+    # shuffle the dataset
+    for _ in range(len(list)):
+        # get two random index values
+        idx1 = prng.get_random_int_range(0, len(list))
+        idx2 = prng.get_random_int_range(0, len(list))
 
-# function to run adder predictions
-def predict_adder(net):
-    pred = predict(net, [0, 0, 0, 0, 0])
-    print(pred)
-    pred = predict(net, [0, 1, 1, 0, 0])
-    print(pred)
-    pred = predict(net, [1, 0, 0, 0, 1])
-    print(pred)
-    pred = predict(net, [1, 1, 0, 0, 1])
-    print(pred)
-    pred = predict(net, [1, 1, 1, 1, 1])
-    print(pred)
-
-def write_to_file(chain_strings, numerical_strings):
-    all_chains = []
-    for string in chain_strings:
-        chain_list = [s.strip() for s in string.split("->")]
-        all_chains.append(chain_list)
-
-    all_numericals = []
-    for string in numerical_strings:
-        numerical_list = [s.strip() for s in string.split("->")]
-        all_numericals.append(numerical_list)
-
-    return all_chains, all_numericals
-
-def clean_label(label):
-    """Replace sigmoid with LaTeX sigma and format other names nicely."""
-    if "sigmoid" in label:
-        inner = label[label.find("(")+1:label.find(")")]
-        return rf"\sigma({inner})"
-    return label
-
-def initialize_latex(filename="derivatives.tex"):
-    """Create a new LaTeX file and write the preamble."""
-    with open(filename, "w") as f:
-        f.write(r"\documentclass{article}" + "\n")
-        f.write(r"\usepackage{amsmath}" + "\n")
-        f.write(r"\begin{document}" + "\n\n")
-    print(f"{filename} initialized.")
-
-def write_chain_to_latex(chain_list, numericals, filename="derivatives.tex"):
-    """Write a single derivative chain to the LaTeX file."""
-    with open(filename, "a") as f:
-        # Last element is the weight we are differentiating wrt
-        final_var = clean_label(chain_list[-1])
-        # Start with dLoss/dW = ...
-        latex_chain = f"\\frac{{\\partial \\text{{Loss}}}}{{\\partial {final_var}}} = "
-        latex_numerical_chain = f"\\frac{{\\partial \\text{{Loss}}}}{{\\partial {final_var}}} = "
-
-        # Build product of partial derivatives
-        products = []
-        
-        for i in range(len(chain_list)-1):
-            numerator = clean_label(chain_list[i])
-            denominator = clean_label(chain_list[i+1])
-            products.append(f"\\frac{{\\partial {numerator}}}{{\\partial {denominator}}}")
-
-        numerical_products = []
-        for i in range(len(numericals)-1):
-            val = clean_label(numericals[i])
-            numerical_products.append(f"{val}")
-        
-        latex_chain += " \\cdot ".join(products)
-        latex_numerical_chain += " \\cdot ".join(numerical_products)
-
-        f.write(f"${latex_chain}$\\\\[2mm]\n")
-        # f.write(f"${latex_numerical_chain}$\\\\[2mm]\n")
-       
-
-def finalize_latex(filename="derivatives.tex"):
-    """Write the end of the LaTeX document."""
-    with open(filename, "a") as f:
-        f.write("\n\\end{document}")
-    print(f"{filename} finalized.")
-
-def main():
-    # create MLP
-    net = MLP(n_inputs = 2, hidden_sizes = [3], n_outputs = 1)
-
-    dataset = xor_dataset()
-    # dataset = two_bit_adder_dataset()
+        # swap the elements at the two indicies
+        temp = list[idx1]
+        list[idx1] = list[idx2]
+        list[idx2] = temp
     
+    return list
+
+def test_train_split(dataset, percent_train):
+    num_train = int(percent_train * len(dataset))
+
+    dataset = shuffle_list(dataset)
+  
+    # split into training and testing sets
+    training_dataset = dataset[0:num_train]
+    testing_dataset = dataset[num_train:]
+
+    return training_dataset, testing_dataset
+
+def evaluate_test_set(net, test_set):
+    total_loss = 0.0
+    for x_raw, y_raw in test_set:
+        x_vars = [Variable(v) for v in x_raw]
+        y_vars = [Variable(v) for v in y_raw]
+        y_pred = net(x_vars)
+        total_loss += loss_function(y_pred, y_vars).value
+    return total_loss / len(test_set)
+
+def train_mlp(net, training_set, learning_rate, num_epochs):
     # train MLP
-    last_loss = Variable(0.0)
-    for epoch in range(10000):
+    total_loss = 'inf'
+    for epoch in range(num_epochs):
         total_loss = 0.0
 
-        for x_raw, y_raw in dataset:
+        for x_raw, y_raw in training_set:
             # convert dataset values into instances of Variable class
-            x_vars = [Variable(v, label = 'x_i') for v in x_raw]
-            y_vars = [Variable(v, label = 'y_i') for v in y_raw]
+            x_vars = [Variable(v) for v in x_raw]
+            y_vars = [Variable(v) for v in y_raw]
 
             # foward pass
             y_pred = net(x_vars)
             loss = loss_function(y_pred, y_vars)
-            last_loss = loss
             
             # reset gradients for weights and biases
             for layer in net.layers:
@@ -373,58 +292,86 @@ def main():
             loss.backprop()
 
             # update weights and biases
-            eta = 0.05
             for layer in net.layers:
                 for neuron in layer.neurons:
                     for W in neuron.W:
-                        W.value = W.value - (eta * W.grad)
-                    neuron.b.value = neuron.b.value - (eta * neuron.b.grad)
+                        W.value = W.value - (learning_rate * W.grad)
+                    neuron.b.value = neuron.b.value - (learning_rate * neuron.b.grad)
 
             # compute loss
             total_loss += loss.value
         
         # print training progress to terminal
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
+    return net, total_loss
 
-    predict_xor(net)
+def run_MLP(dataset, dataset_name, n_inputs, hidden_sizes, n_outputs, learning_rate, num_epochs):
+    with open(f"{dataset_name}_example.txt", "w") as f:
+        net = MLP(n_inputs = n_inputs, hidden_sizes = hidden_sizes, n_outputs = n_outputs)
+        net, total_loss = train_mlp(net, training_set = dataset, learning_rate = learning_rate, num_epochs = num_epochs)
+        
+        f.write(f'MLP OUTPUT FOR {dataset_name}:\n\n')
+        f.write('Parameters:\n')
+        f.write(f'   Number of inputs = {n_inputs}\n')
+        f.write(f'   Hidden Layers = {hidden_sizes}\n')
+        f.write(f'   Number of outputs = {n_outputs}\n')
+        f.write(f'   Learning rate = {learning_rate}\n')
+        f.write(f'   num_epochs = {num_epochs}\n')
+        f.write('Results:\n')
+        f.write(f'   Loss = {total_loss}\n\n')
 
+        f.write('Predictions:\n\n')
+        for input in dataset:
+            output = predict(net, input[0])
+            output = [round(i, 1) for i in output]
+            f.write(f'Input = {input[0]}, Output = {output}\n')
 
+def main():
+    # # run example on XOR dataset - write results to text file
+    # run_MLP(dataset = xor_dataset(), 
+    #         dataset_name = 'XOR',
+    #         n_inputs = 2,
+    #         hidden_sizes = [3],
+    #         n_outputs = 1,
+    #         learning_rate = 0.05,
+    #         num_epochs = 20000)
     
-    chain_strings = []
-    numerical_strings = []
-
-    for layer in net.layers:
-        for neuron in layer.neurons:
-            for W in neuron.W:
-                print(f"dLoss/d{W.label} =")
-                chains = last_loss.parent_chain(W)
-                
-                for chain in chains:
-                    seen = set()
-                    labels = []
-                    numericals = []
-                    
-                    for p in chain:
-                        if hasattr(p, "label") and p.label and p.label not in seen:
-                            labels.append(clean_label(p.label))
-                            numericals.append(p.grad)
-                            seen.add(p.label)
-                    
-                    string = "Loss -> " + " -> ".join(labels)
-                    string2 = " -> ".join([f"{num:.4f}" for num in numericals])
-                    
-                    print(string)
-                    print(string2)
-                    
-                    chain_strings.append(string)
-                    numerical_strings.append(string2)
-
-    chains, numericals = write_to_file(chain_strings, numerical_strings)
-
-    initialize_latex()
-    for chain, numerical in zip(chains, numericals):
-        write_chain_to_latex(chain, numerical)
-    finalize_latex()
+    # run example on adder dataset - write results to text file
+    run_MLP(dataset = two_bit_adder_dataset(), 
+            dataset_name = 'ADDER',
+            n_inputs = 5,
+            hidden_sizes = [3],
+            n_outputs = 3,
+            learning_rate = 0.05,
+            num_epochs = 20000)
     
+    # run on different hyperparameters - write to file
+    datasets = {"XOR": xor_dataset(), "Two-bit Adder": two_bit_adder_dataset()}
+    splits = [0.75]
+    hidden_options = [[3], [3, 3]]
+    learning_rates = [0.05, 0.1]
+    epochs = [100, 200, 1000]
+
+    with open("results.txt", "w") as f:
+        f.write('This file contains results from various modifications to hyperparameters.\n')
+        for name, dataset in datasets.items():
+            f.write(f"\n-Dataset: {name}:\n")
+            for split in splits:
+                training_dataset, testing_dataset = test_train_split(dataset, split)
+                for hidden in hidden_options:
+                    for lr in learning_rates:
+                        for num_epochs in epochs:
+                            # build network
+                            net = MLP(n_inputs = len(dataset[0][0]), hidden_sizes = hidden, n_outputs = len(dataset[0][1]))
+                            
+                            # train network
+                            net, train_loss = train_mlp(net, training_dataset, learning_rate = lr, num_epochs = num_epochs)
+                            
+                            # test network
+                            test_loss = evaluate_test_set(net, testing_dataset)
+                            f.write(f"Split = {split:<5.2f} | Hidden = {str(hidden):<8} | LearningRate = {lr:<4} | "
+                                f"Epochs = {num_epochs:<4} | TrainLoss = {train_loss:<8.4f} | TestLoss = {test_loss:<8.4f}\n")
+    print("\nDone. Check output files for results.\n")
+
 if __name__ == "__main__":
     main()

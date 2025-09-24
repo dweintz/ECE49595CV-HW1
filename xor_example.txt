@@ -1,0 +1,17 @@
+MLP OUTPUT FOR XOR:
+
+Parameters:
+   Number of inputs = 2
+   Hidden Layers = [3]
+   Number of outputs = 1
+   Learning rate = 0.05
+   num_epochs = 20000
+Results:
+   Loss = 0.002693491883407644
+
+Predictions:
+
+Input = [0.0, 0.0], Output = [0.0]
+Input = [0.0, 1.0], Output = [1.0]
+Input = [1.0, 0.0], Output = [1.0]
+Input = [1.0, 1.0], Output = [0.0]
