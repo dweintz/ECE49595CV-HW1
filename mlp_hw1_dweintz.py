@@ -350,8 +350,11 @@ def run_MLP(dataset,
                 correct += 1
             total += 1
             
-            f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, '
-                    f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
+            f.write(
+                f"Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, "
+                f"{('Correct' if pred_output == exp_output else 'Incorrect')}\n"
+            )
+
 
         accuracy = round(correct / total, 2)
         f.write(f'\nAccuracy (all data) = {accuracy * 100:.1f}%\n')
@@ -360,7 +363,7 @@ def run_MLP(dataset,
         for input in training_set:
             f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in input[1]]}\n')
 
-        f.write('\nPrecitions for test set used:\n\n')
+        f.write('\nPreditions for test set used:\n\n')
         if not testing_set:
                 f.write('All data used for training and testing.\n')
         else:
@@ -374,8 +377,12 @@ def run_MLP(dataset,
                     correct += 1
                 total += 1
                 
-                f.write(f'Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, '
-                        f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
+                f.write(
+                    f"Input = {[int(i) for i in input[0]]}, Output = {[int(i) for i in pred_output]}, "
+                    f"{('Correct' if pred_output == exp_output else 'Incorrect')}\n"
+                )
+
+
 
 def main():
     '''

@@ -1,0 +1,32 @@
+========== MLP OUTPUT FOR XOR_1 ==========
+
+Parameters:
+   Number of inputs = 2
+   Hidden Layers = [3]
+   Number of outputs = 1
+   Learning rate = 0.05
+   Num_epochs = 20000
+   Train size = 100.0%
+Results:
+   Final Loss = 0.002693491883407644
+
+Predictions for all data (rounded to nearest integer):
+
+Input = [0, 0], Output = [0], Correct
+Input = [0, 1], Output = [1], Correct
+Input = [1, 0], Output = [1], Correct
+Input = [1, 1], Output = [0], Correct
+
+Accuracy (all data) = 100.0%
+
+
+Training set used:
+
+Input = [0, 0], Output = [0]
+Input = [0, 1], Output = [1]
+Input = [1, 0], Output = [1]
+Input = [1, 1], Output = [0]
+
+Precitions for test set used:
+
+All data used for training and testing.
