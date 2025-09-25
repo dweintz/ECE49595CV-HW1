@@ -1,4 +1,4 @@
-========== MLP OUTPUT FOR XOR ==========
+========== MLP OUTPUT FOR XOR_1 ==========
 
 Parameters:
    Number of inputs = 2

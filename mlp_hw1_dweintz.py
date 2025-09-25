@@ -19,8 +19,8 @@ class Variable:
         out = Variable(self.value + other.value, (self, other), '+')
         
         def backward():
-            self.grad += out.grad
-            other.grad += out.grad
+            self.grad += out.grad * 1
+            other.grad += out.grad * 1
         out.backward = backward
 
         return out
@@ -237,8 +237,8 @@ def shuffle_list(list):
     # shuffle the dataset
     for _ in range(len(list)):
         # get two random index values
-        idx1 = prng.get_random_int_range(0, len(list))
-        idx2 = prng.get_random_int_range(0, len(list))
+        idx1 = prng.get_random_int_range(0, len(list) - 1)
+        idx2 = prng.get_random_int_range(0, len(list) - 1)
 
         # swap the elements at the two indicies
         temp = list[idx1]
@@ -352,7 +352,7 @@ def run_MLP(dataset,
                     f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
 
         accuracy = round(correct / total, 2)
-        f.write(f'\nAccuracy = {accuracy * 100}%\n')
+        f.write(f'\nAccuracy = {accuracy * 100:.1f}%\n')
 
         f.write('\n\nTraining set used:\n\n')
         for input in training_set:
@@ -396,7 +396,7 @@ def main():
 
     # run example on XOR dataset - write results to text file
     run_MLP(dataset = xor_dataset(), 
-            dataset_name = 'XOR',
+            dataset_name = 'XOR_1',
             percent_train = 1.0,
             n_inputs = 2,
             hidden_sizes = [3],
@@ -406,13 +406,33 @@ def main():
     
     # run example on adder dataset - write results to text file
     run_MLP(dataset = two_bit_adder_dataset(), 
-            dataset_name = 'ADDER',
+            dataset_name = 'ADDER_1',
             percent_train = 1.0,
             n_inputs = 5,
             hidden_sizes = [10, 5],
             n_outputs = 3,
             learning_rate = 0.05,
             num_epochs = 1580)
+
+    # run example on XOR dataset - write results to text file
+    run_MLP(dataset = xor_dataset(), 
+            dataset_name = 'XOR_2',
+            percent_train = 0.75,
+            n_inputs = 2,
+            hidden_sizes = [3],
+            n_outputs = 1,
+            learning_rate = 0.05,
+            num_epochs = 20000)
+    
+    # run example on adder dataset - write results to text file
+    run_MLP(dataset = two_bit_adder_dataset(), 
+            dataset_name = 'ADDER_2',
+            percent_train = 0.75,
+            n_inputs = 5,
+            hidden_sizes = [5],
+            n_outputs = 3,
+            learning_rate = 0.04,
+            num_epochs = 1200)
     
     print("\nDone. Check output files for results.\n")
 

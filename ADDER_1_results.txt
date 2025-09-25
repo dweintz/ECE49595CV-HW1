@@ -1,0 +1,88 @@
+========== MLP OUTPUT FOR ADDER_1 ==========
+
+Parameters:
+   Number of inputs = 5
+   Hidden Layers = [10, 5]
+   Number of outputs = 3
+   Learning rate = 0.05
+   Num_epochs = 1580
+   Train size = 100.0%
+Results:
+   Final Loss = 1.7410530015118586
+
+Predictions for all data (rounded to nearest integer):
+
+Input = [0, 0, 0, 0, 0], Output = [0, 0, 0], Correct
+Input = [0, 0, 0, 0, 1], Output = [0, 1, 0], Correct
+Input = [0, 0, 0, 1, 0], Output = [0, 1, 0], Correct
+Input = [0, 0, 0, 1, 1], Output = [0, 0, 1], Correct
+Input = [0, 0, 1, 0, 0], Output = [1, 0, 0], Correct
+Input = [0, 0, 1, 0, 1], Output = [1, 1, 0], Correct
+Input = [0, 0, 1, 1, 0], Output = [1, 1, 0], Correct
+Input = [0, 0, 1, 1, 1], Output = [1, 0, 1], Correct
+Input = [0, 1, 0, 0, 0], Output = [1, 0, 0], Correct
+Input = [0, 1, 0, 0, 1], Output = [1, 1, 0], Correct
+Input = [0, 1, 0, 1, 0], Output = [1, 1, 0], Correct
+Input = [0, 1, 0, 1, 1], Output = [1, 0, 1], Correct
+Input = [0, 1, 1, 0, 0], Output = [0, 1, 0], Correct
+Input = [0, 1, 1, 0, 1], Output = [0, 0, 1], Correct
+Input = [0, 1, 1, 1, 0], Output = [0, 0, 1], Correct
+Input = [0, 1, 1, 1, 1], Output = [0, 1, 1], Correct
+Input = [1, 0, 0, 0, 0], Output = [1, 0, 0], Correct
+Input = [1, 0, 0, 0, 1], Output = [1, 1, 0], Correct
+Input = [1, 0, 0, 1, 0], Output = [1, 1, 0], Correct
+Input = [1, 0, 0, 1, 1], Output = [1, 0, 1], Correct
+Input = [1, 0, 1, 0, 0], Output = [0, 1, 0], Correct
+Input = [1, 0, 1, 0, 1], Output = [0, 0, 1], Correct
+Input = [1, 0, 1, 1, 0], Output = [0, 0, 1], Correct
+Input = [1, 0, 1, 1, 1], Output = [0, 1, 1], Correct
+Input = [1, 1, 0, 0, 0], Output = [0, 1, 0], Correct
+Input = [1, 1, 0, 0, 1], Output = [0, 0, 1], Correct
+Input = [1, 1, 0, 1, 0], Output = [0, 0, 1], Correct
+Input = [1, 1, 0, 1, 1], Output = [0, 1, 1], Correct
+Input = [1, 1, 1, 0, 0], Output = [1, 1, 0], Correct
+Input = [1, 1, 1, 0, 1], Output = [1, 0, 1], Correct
+Input = [1, 1, 1, 1, 0], Output = [1, 0, 1], Correct
+Input = [1, 1, 1, 1, 1], Output = [0, 1, 1], Incorrect
+
+Accuracy = 97.0%
+
+
+Training set used:
+
+Input = [0, 0, 0, 0, 0], Output = [0, 0, 0]
+Input = [0, 0, 0, 0, 1], Output = [0, 1, 0]
+Input = [0, 0, 0, 1, 0], Output = [0, 1, 0]
+Input = [0, 0, 0, 1, 1], Output = [0, 0, 1]
+Input = [0, 0, 1, 0, 0], Output = [1, 0, 0]
+Input = [0, 0, 1, 0, 1], Output = [1, 1, 0]
+Input = [0, 0, 1, 1, 0], Output = [1, 1, 0]
+Input = [0, 0, 1, 1, 1], Output = [1, 0, 1]
+Input = [0, 1, 0, 0, 0], Output = [1, 0, 0]
+Input = [0, 1, 0, 0, 1], Output = [1, 1, 0]
+Input = [0, 1, 0, 1, 0], Output = [1, 1, 0]
+Input = [0, 1, 0, 1, 1], Output = [1, 0, 1]
+Input = [0, 1, 1, 0, 0], Output = [0, 1, 0]
+Input = [0, 1, 1, 0, 1], Output = [0, 0, 1]
+Input = [0, 1, 1, 1, 0], Output = [0, 0, 1]
+Input = [0, 1, 1, 1, 1], Output = [0, 1, 1]
+Input = [1, 0, 0, 0, 0], Output = [1, 0, 0]
+Input = [1, 0, 0, 0, 1], Output = [1, 1, 0]
+Input = [1, 0, 0, 1, 0], Output = [1, 1, 0]
+Input = [1, 0, 0, 1, 1], Output = [1, 0, 1]
+Input = [1, 0, 1, 0, 0], Output = [0, 1, 0]
+Input = [1, 0, 1, 0, 1], Output = [0, 0, 1]
+Input = [1, 0, 1, 1, 0], Output = [0, 0, 1]
+Input = [1, 0, 1, 1, 1], Output = [0, 1, 1]
+Input = [1, 1, 0, 0, 0], Output = [0, 1, 0]
+Input = [1, 1, 0, 0, 1], Output = [0, 0, 1]
+Input = [1, 1, 0, 1, 0], Output = [0, 0, 1]
+Input = [1, 1, 0, 1, 1], Output = [0, 1, 1]
+Input = [1, 1, 1, 0, 0], Output = [1, 1, 0]
+Input = [1, 1, 1, 0, 1], Output = [1, 0, 1]
+Input = [1, 1, 1, 1, 0], Output = [1, 0, 1]
+Input = [1, 1, 1, 1, 1], Output = [1, 1, 1]
+
+Precitions for test set used:
+
+All data used for training and testing.
