@@ -17,7 +17,7 @@ Input = [0, 1], Output = [1], Correct
 Input = [0, 0], Output = [0], Correct
 Input = [1, 1], Output = [1], Incorrect
 
-Accuracy = 75.0%
+Accuracy (all data) = 75.0%
 
 
 Training set used:

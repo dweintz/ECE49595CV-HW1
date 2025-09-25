@@ -181,6 +181,7 @@ class MLP:
             layer = Layer(sizes[i], sizes[i + 1], i)
             self.layers.append(layer)
     
+    # compute activations for network
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
@@ -286,7 +287,7 @@ def train_mlp(net, training_set, learning_rate, num_epochs):
             # backprop step
             loss.backprop()
 
-            # update weights and biases
+            # update weights and biases - gradient descent
             for layer in net.layers:
                 for neuron in layer.neurons:
                     for W in neuron.W:
@@ -298,6 +299,7 @@ def train_mlp(net, training_set, learning_rate, num_epochs):
         
         # print training progress to terminal
         print(f"Epoch: {epoch}, Loss = {total_loss:.4f}")
+
     return net, total_loss
 
 # function to build, train, and test the MLP with various hyperparameters  
@@ -352,7 +354,7 @@ def run_MLP(dataset,
                     f'{'Correct' if pred_output == exp_output else 'Incorrect'}\n')
 
         accuracy = round(correct / total, 2)
-        f.write(f'\nAccuracy = {accuracy * 100:.1f}%\n')
+        f.write(f'\nAccuracy (all data) = {accuracy * 100:.1f}%\n')
 
         f.write('\n\nTraining set used:\n\n')
         for input in training_set:
@@ -394,6 +396,8 @@ def main():
     -- "num_epochs": Number of gradient descent iterations.
     '''
 
+    # best examples
+
     # run example on XOR dataset - write results to text file
     run_MLP(dataset = xor_dataset(), 
             dataset_name = 'XOR_1',
@@ -413,6 +417,9 @@ def main():
             n_outputs = 3,
             learning_rate = 0.05,
             num_epochs = 1580)
+
+
+    # additional examples to show splits and different hyperparameters
 
     # run example on XOR dataset - write results to text file
     run_MLP(dataset = xor_dataset(), 
@@ -434,7 +441,7 @@ def main():
             learning_rate = 0.04,
             num_epochs = 1200)
     
-    print("\nDone. Check output files for results.\n")
+    print("\nDone. Check output txt files for results.\n")
 
 if __name__ == "__main__":
     main()

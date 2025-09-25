@@ -8,7 +8,7 @@ Parameters:
    Num_epochs = 1200
    Train size = 75.0%
 Results:
-   Final Loss = 6.43876562470453
+   Final Loss = 6.438765624704552
 
 Predictions for all data (rounded to nearest integer):
 
@@ -45,7 +45,7 @@ Input = [0, 1, 1, 1, 0], Output = [0, 0, 1], Correct
 Input = [0, 0, 1, 1, 1], Output = [0, 1, 1], Incorrect
 Input = [1, 1, 1, 1, 1], Output = [1, 1, 1], Correct
 
-Accuracy = 72.0%
+Accuracy (all data) = 72.0%
 
 
 Training set used:
