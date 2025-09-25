@@ -8,7 +8,7 @@ Parameters:
    Num_epochs = 1200
    Train size = 75.0%
 Results:
-   Final Loss = 6.438765624704552
+   Final Loss = 6.43876562470453
 
 Predictions for all data (rounded to nearest integer):
 
